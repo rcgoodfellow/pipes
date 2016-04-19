@@ -154,7 +154,8 @@ namespace pipes
   auto
   reduce(F f)
   {
-    return [f](auto & c){ return do_reduce(c, f); };
+    //              .. universal reference
+    return [f](auto && c){ return do_reduce(c, f); };
   }
 
   auto plus = [](auto x, auto y){ return x + y; };

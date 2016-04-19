@@ -6,26 +6,57 @@
 using namespace pipes;
 using namespace std;
 
-int main()
+void basic()
 {
-  struct ingredient { string name; size_t quantity; };
-  using whopper = vector<ingredient>;
-  whopper standard = {
-    {"patty", 1},
-    {"tomato", 3},
-    {"pickles", 5},
-    {"lettuce", 2},
-    {"mayo", 4},
+  string s = 
+  4
+  | [](int x){ return vector<string>(x, "muffin"); }
+  | reduce([](string x, string y) { return x + "\n" + y; });
+
+  cout << s << endl;
+}
+
+void gross_basic()
+{
+  string s = 
+  reduce( [](string x, string y) { return x + "\n" + y; } )(
+    vector<string>(4, "muffin") 
+  );
+
+  cout << s << endl;
+}
+
+void garden()
+{
+  struct Plant { string name; size_t quantity; };
+  using Landscape = vector<Plant>;
+
+  Landscape yard
+  {
+    {"tulip", 150},
+    {"weed", 62},
+    {"tomato", 47},
+    {"basil", 55},
+    {"rose", 15}
   };
 
-  auto myWhopper = 
-    standard
-    | filter([](auto i) { return i.name == "pickles"; })
-    | map([](auto i) { i.quantity *= 2; return i; })
-    | sort([](auto x, auto y) { return x.quantity < y.quantity; })
-    | map([](auto i) { return i.name + "(" + to_string(i.quantity) + ")"; })
-    | reduce([](auto x, auto y) { return x + "\n" + y; });
+  auto garden =
+    yard
+    | filter( [](Plant p){ return p.name == "weed"; } ) //pick the weeds
+    | map( [](Plant p){ p.quantity *= 1.5; return p; } ) //grow
+    | map( [](Plant p){ 
+        return p.name + "(" + to_string(p.quantity) + ")"; } ) //plant -> str
+    | reduce( [](string x, string y){ return x + "\n" + y; }) //[str] -> str
+    ; 
   
+  cout << garden << endl;
+}
 
-  cout << myWhopper << endl;
+int main()
+{
+  basic();
+  cout << endl;
+  gross_basic();
+  cout << endl;
+  garden();
 }

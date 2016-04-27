@@ -9,7 +9,6 @@
 
 namespace pipes
 {
-
   template< typename C, typename F>
   auto
   operator | (C && c, F f)
@@ -146,8 +145,14 @@ namespace pipes
   auto
   do_reduce(C<A,AT...> & c, F f)
   {
+    switch(c.size())
+    {
+      case 0: return A{};
+      case 1: return *c.begin();
+      default: return std::accumulate(c.begin()+1, c.end(), *c.begin(), f);
+    }
+    
     //return std::accumulate(c.begin(), c.end(), A{}, f);
-    return std::accumulate(c.begin()+1, c.end(), *c.begin(), f);
   }
 
   template < typename F >
@@ -225,6 +230,28 @@ namespace pipes
   filter(F f)
   {
     return [f](auto & c){ return do_filter(c, f); };
+  }
+
+  template<typename T>
+  std::vector<T> range(T begin, T end)
+  {
+    std::vector<T> v(end - begin, T{});
+    size_t i{0}; 
+    for(T x=begin; x<end; ++x, ++i) v[i] = x;
+    return v;
+  }
+
+  //foreach --------------------------------------------------------------------
+  
+  template <typename F>
+  auto for_each(F f)
+  {
+    return 
+      [f](auto & C) -> auto &
+      { 
+        for(auto x : C) f(x);
+        return C;
+      };
   }
 
 }

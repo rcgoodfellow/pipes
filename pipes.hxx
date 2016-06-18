@@ -25,7 +25,7 @@ namespace pipes
     typename ...AT
   >
   auto
-  do_map (C<A,AT...> & c, F f) 
+  do_map (const C<A,AT...> & c, F f) 
   {
     using T = typename std::result_of<F(A&)>::type;
     CC<T> result;
@@ -42,7 +42,7 @@ namespace pipes
     typename ...AT
   >
   auto
-  do_map (C<A,AT...> & c, F f) 
+  do_map (const C<A,AT...> & c, F f) 
   {
     return do_map<A, F, C, CC, AT...>(c, f);
   }

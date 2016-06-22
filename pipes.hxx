@@ -6,6 +6,7 @@
 #include <numeric>
 #include <algorithm>
 #include <unordered_map>
+#include <experimental/optional>
 
 namespace pipes
 {
@@ -15,6 +16,35 @@ namespace pipes
   {
     return f(c);
   }
+
+  //collect --------------------------------------------------------------------
+  template < 
+    typename A,
+    typename F,
+    template <typename, typename...> class C, 
+    template <typename, typename...> class CC = C,
+    typename ...AT
+  >
+  auto
+  do_collect (const C<A,AT...> & c, F f) 
+  {
+    using T = typename std::result_of<F(A&)>::type::value_type;
+    CC<T> result;
+    result.reserve(c.size());
+    for(const auto & x : c)
+    {
+      auto xx = f(x);
+      if(xx) result.insert(result.end(), *xx);
+    }
+    return result;
+  }
+
+  template<typename F>
+  auto collect(F f)
+  {
+    return [f](auto & c){ return do_collect(c, f); };
+  }
+
 
   //map ------------------------------------------------------------------------
   template < 
@@ -56,7 +86,7 @@ namespace pipes
     typename ...AT
   >
   auto
-  do_map (std::unordered_map<K,A,AT...> & c, F f) 
+  do_map (const std::unordered_map<K,A,AT...> & c, F f) 
   {
     using T = typename std::result_of<F(std::pair<K,A>&)>::type;
     CC<T> result;

@@ -6,6 +6,7 @@
 #include <numeric>
 #include <algorithm>
 #include <unordered_map>
+#include <type_traits>
 #include <experimental/optional>
 
 namespace pipes
@@ -181,16 +182,37 @@ namespace pipes
       case 1: return *c.begin();
       default: return std::accumulate(c.begin()+1, c.end(), *c.begin(), f);
     }
-    
-    //return std::accumulate(c.begin(), c.end(), A{}, f);
+  }
+
+  template < 
+    typename A,
+    template <typename, typename...> class C, 
+    typename F, typename ...AT
+  >
+  auto
+  do_reduce_first(C<A,AT...> & c, F f)
+  {
+    switch(c.size())
+    {
+      case 0: throw std::runtime_error{
+                "reduce_first does not work for empty collections"};
+      case 1: return *c.begin();
+      default: return std::accumulate(c.begin()+1, c.end(), *c.begin(), f);
+    }
   }
 
   template < typename F >
   auto
   reduce(F f)
   {
-    //              .. universal reference
-    return [f](auto && c){ return do_reduce(c, f); };
+    return [f](auto && c) { return do_reduce(c, f); };
+  }
+
+  template < typename F >
+  auto
+  reduce_first(F f)
+  {
+    return [f](auto && c){ return do_reduce_first(c, f); };
   }
 
   auto plus = [](auto x, auto y){ return x + y; };
@@ -202,7 +224,7 @@ namespace pipes
     typename F, typename ...AT
   >
   auto
-  do_sort(C<A,AT...> & c, F f)
+  do_sort(const C<A,AT...> & c, F f)
   {
     auto cc = c;
     std::sort(cc.begin(), cc.end(), f);
@@ -215,7 +237,7 @@ namespace pipes
     typename ...AT
   >
   auto
-  do_sort(C<A,AT...> & c)
+  do_sort(const C<A,AT...> & c)
   {
     auto cc = c;
     std::sort(cc.begin(), cc.end());
@@ -226,14 +248,14 @@ namespace pipes
   auto
   sort(F f)
   {
-    return [f](auto & c){ return do_sort(c, f); };
+    return [f](const auto & c){ return do_sort(c, f); };
   }
   
   auto
   inline
   sort()
   {
-    return [](auto & c){ return do_sort(c); };
+    return [](const auto & c){ return do_sort(c); };
   }
 
   //filter ---------------------------------------------------------------------
